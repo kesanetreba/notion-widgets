@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clock Widget</title>
+<style>
+  :root { --fg: #111; --bg: #fff; --radius: 12px; --pad: 18px; --font: 28px; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #f4f4f4; --bg: #111; }
+  }
+  html,body{height:100%;margin:0}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;
+  }
+  .box{
+    padding:var(--pad); border-radius:var(--radius);
+    box-shadow:0 4px 18px rgba(0,0,0,.08); text-align:center; min-width:240px;
+  }
+  .time{font-weight:700;font-size:var(--font);letter-spacing:.5px}
+  .date{opacity:.7;margin-top:6px;font-size:14px}
+</style>
+<div class="box">
+  <div class="time" id="t">--:--</div>
+  <div class="date" id="d"></div>
+</div>
+<script>
+  const qs = new URLSearchParams(location.search);
+  const tz   = qs.get('tz')   || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const fmt  = (qs.get('fmt') || '24') === '12' ? 'h:mm:ss a' : 'HH:mm:ss';
+  const showDate = (qs.get('date') || '1') === '1';
+  const font = qs.get('font'); if (font) document.documentElement.style.setProperty('--font', font);
+  const fg = qs.get('fg'); if (fg) document.documentElement.style.setProperty('--fg', fg);
+  const bg = qs.get('bg'); if (bg) document.documentElement.style.setProperty('--bg', bg);
+
+  function format(dt, pattern){
+    const pad = n => String(n).padStart(2,'0');
+    let h = dt.getHours(), m = dt.getMinutes(), s = dt.getSeconds();
+    const am = h < 12 ? 'AM' : 'PM';
+    const hh = pad(h), mm = pad(m), ss = pad(s);
+    const h12 = h%12 || 12;
+    return pattern.replace('HH', hh).replace('h', h12).replace('mm', mm).replace('ss', ss).replace('a', am);
+  }
+  function tick(){
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+    t.textContent = format(now, fmt);
+    d.textContent = showDate ? now.toLocaleDateString('ru-RU', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '';
+  }
+  tick(); setInterval(tick, 500);
+</script>
+</html>
